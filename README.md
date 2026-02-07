@@ -1,1 +1,0 @@
-# alkane-structure.ver.2
