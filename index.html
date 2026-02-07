@@ -1,207 +1,246 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>アルカン構造シミュレーター</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>アルカン構造シミュレーター</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="アルカン構造">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1048/1048455.png">
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="アルカン構造">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1048/1048455.png">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js"
+            }
+        }
+    </script>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
-        "three/examples/jsm/exporters/GLTFExporter": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/exporters/GLTFExporter.js"
-      }
-    }
-  </script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
-    body { margin: 0; overflow: hidden; background-color: #f3f4f6; color: #1f2937; font-family: sans-serif; touch-action: manipulation; }
-    canvas { display: block; touch-action: none; }
-    .controls {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 10;
-      background: rgba(255,255,255,0.95);
-      padding: 15px;
-      border-radius: 12px;
-      max-width: 300px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      border: 1px solid #e5e7eb;
-      max-height: 85vh;
-      overflow-y: auto;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-    .controls.minimized {
-      transform: translateX(-200%);
-      opacity: 0;
-      pointer-events: none;
-    }
-    .toggle-ui-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 20;
-      background: #4f46e5;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .info { position: absolute; bottom: 20px; left: 20px; z-index: 10; background: rgba(255,255,255,0.9); padding: 12px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb; max-width: calc(100% - 40px); }
-    #ar-viewer { display: none; }
-    .ar-btn { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
-    .struct-btn { background: #fff; border: 1px solid #d1d5db; color: #374151; min-width: calc(50% - 0.5rem); }
-    .struct-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
-    .hidden { display: none; }
-  </style>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f3f4f6; }
+        canvas { display: block; touch-action: none; }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 
 <body>
 
-  <button id="toggleUIPanel" class="toggle-ui-btn hidden">メニュー表示</button>
+<div class="controls">
+    <h1 class="text-xl font-bold mb-2">アルカン構造</h1>
 
-  <div id="controlsPanel" class="controls">
-    <h1 class="text-lg font-bold text-indigo-600">アルカン構造</h1>
-
-    <select id="carbonSelect" class="bg-white border p-2 w-full text-sm">
-      <option value="1" selected>C1: メタン</option>
-      <option value="2">C2: エタン</option>
-      <option value="3">C3: プロパン</option>
-      <option value="4">C4: ブタン</option>
-      <option value="5">C5: ペンタン</option>
-      <option value="6">C6: ヘキサン</option>
-      <option value="7">C7: ヘプタン</option>
-      <option value="8">C8: オクタン</option>
+    <label class="block mb-1">炭素数</label>
+    <select id="carbonSelect" class="border p-2 w-full mb-2">
+        <option value="8">C8: オクタン</option>
     </select>
 
-    <div id="isomerControls">
-      <label>異性体を選択</label>
-      <div id="isomerButtons"></div>
-    </div>
+    <label class="block mb-1">異性体を選択（代表例）</label>
+    <div id="isomerButtons" class="space-y-1 mb-2"></div>
 
-    <button id="resetViewBtn">視点リセット</button>
-  </div>
+    <button id="resetViewBtn" class="bg-gray-200 p-2 w-full rounded">
+        視点リセット
+    </button>
+</div>
 
-  <script type="module">
-    import * as THREE from 'three';
+<script type="module">
+import * as THREE from 'three';
 
-    let scene, camera, renderer, moleculeGroup;
-    let currentIsomerIndex = 0;
+let scene, camera, renderer, moleculeGroup;
+let currentIsomerIndex = 0;
+let scaleFactor = 1;
 
-    function createNode(type, children = [], iupac = null) {
-      return { type, children, iupac };
+function createNode(type, children = []) {
+    return { type, children };
+}
+
+function fillH(node) {
+    if (node.type !== 'C') return node;
+
+    const hCount = 4 - node.children.length;
+    for (let i = 0; i < hCount; i++) {
+        node.children.push(createNode('H'));
     }
 
-    function fillH(node) {
-      if (node.type !== 'C') return node;
-      const hCount = 4 - node.children.length;
-      for (let i = 0; i < hCount; i++) node.children.push(createNode('H'));
-      node.children.forEach(fillH);
-      return node;
-    }
+    node.children.forEach(fillH);
+    return node;
+}
 
-    const C = (n, children = []) => createNode('C', children, n.toString());
+const C = (children = []) => createNode('C', children);
 
-    const ISOMERS = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [] };
+const ISOMERS = [];
 
-    ISOMERS[8].push({
-      name: "オクタン",
-      desc: "直鎖のオクタン",
-      root: fillH(C(4, [C(3, [C(2, [C(1)])]), C(5, [C(6, [C(7, [C(8)])])])]))
-    });
+ISOMERS.push({
+    name: "オクタン",
+    root: fillH(
+        C([C([C([C()])]), C([C([C([C()])])])])
+    )
+});
 
-    ISOMERS[8].push({
-      name: "2,2,4-トリメチルペンタン",
-      desc: "オクタンの代表的な異性体",
-      root: fillH(C(4, [
-        C(3, [C(2, [C(1), C("M1"), C("M2")])]),
-        C(5),
-        C("M3")
-      ]))
-    });
+ISOMERS.push({
+    name: "2,2,4-トリメチルペンタン",
+    root: fillH(
+        C([
+            C([C([C(), C(), C()])]),
+            C(),
+            C()
+        ])
+    )
+});
 
-    ISOMERS[8].push({
-      name: "2-メチルヘプタン",
-      desc: "主鎖が7本で2番目に枝分かれ",
-      root: fillH(C(4, [
-        C(3, [C(2, [C(1), C("M")])]),
-        C(5, [C(6, [C(7)])])
-      ]))
-    });
+ISOMERS.push({
+    name: "2-メチルヘプタン",
+    root: fillH(
+        C([
+            C([C([C(), C()])]),
+            C([C([C()])])
+        ])
+    )
+});
 
-    function init() {
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-      camera.position.z = 10;
+function init() {
+    scene = new THREE.Scene();
 
-      renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 12);
 
-      moleculeGroup = new THREE.Group();
-      scene.add(moleculeGroup);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-      updateUI();
-      animate();
-    }
+    moleculeGroup = new THREE.Group();
+    scene.add(moleculeGroup);
 
-    function updateUI() {
-      const list = ISOMERS[8];
-      const container = document.getElementById("isomerButtons");
-      container.innerHTML = "";
+    setupUI();
+    setupInteractions();
 
-      list.forEach((iso, i) => {
+    updateMolecule();
+    animate();
+}
+
+function setupUI() {
+    const container = document.getElementById("isomerButtons");
+
+    ISOMERS.forEach((iso, i) => {
         const btn = document.createElement("button");
+        btn.className = "bg-blue-500 text-white p-2 w-full rounded";
         btn.textContent = iso.name;
+
         btn.onclick = () => {
-          currentIsomerIndex = i;
-          updateMolecule();
+            currentIsomerIndex = i;
+            updateMolecule();
         };
+
         container.appendChild(btn);
-      });
+    });
 
-      updateMolecule();
-    }
+    document.getElementById("resetViewBtn").onclick = () => {
+        moleculeGroup.rotation.set(0, 0, 0);
+        scaleFactor = 1;
+        moleculeGroup.scale.set(1,1,1);
+    };
+}
 
-    function updateMolecule() {
-      while (moleculeGroup.children.length)
+function build(node, pos) {
+    const material = new THREE.MeshBasicMaterial({
+        color: node.type === "C" ? 0x333333 : 0x88ccff
+    });
+
+    const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(node.type === "C" ? 0.4 : 0.25, 16, 16),
+        material
+    );
+
+    sphere.position.copy(pos);
+    moleculeGroup.add(sphere);
+
+    node.children.forEach((child, i) => {
+        const offset = new THREE.Vector3(
+            (i - 1) * 1.2,
+            -1.2,
+            0
+        );
+
+        build(child, pos.clone().add(offset));
+    });
+}
+
+function updateMolecule() {
+    while (moleculeGroup.children.length) {
         moleculeGroup.remove(moleculeGroup.children[0]);
-
-      const iso = ISOMERS[8][currentIsomerIndex];
-      buildSimple(iso.root, new THREE.Vector3(0, 0, 0));
     }
 
-    function buildSimple(node, pos) {
-      const sphere = new THREE.Mesh(
-        new THREE.SphereGeometry(0.3),
-        new THREE.MeshBasicMaterial({ color: node.type === "C" ? 0x333333 : 0xcccccc })
-      );
-      sphere.position.copy(pos);
-      moleculeGroup.add(sphere);
+    build(ISOMERS[currentIsomerIndex].root, new THREE.Vector3(0,0,0));
+}
 
-      node.children.forEach((child, i) => {
-        const nextPos = pos.clone().add(new THREE.Vector3(i - 1, -1, 0));
-        buildSimple(child, nextPos);
-      });
-    }
+function setupInteractions() {
+    let dragging = false;
+    let prevX = 0;
+    let prevY = 0;
 
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
+    renderer.domElement.addEventListener("mousedown", e => {
+        dragging = true;
+        prevX = e.clientX;
+        prevY = e.clientY;
+    });
 
-    window.onload = init;
-  </script>
+    window.addEventListener("mouseup", () => dragging = false);
+
+    window.addEventListener("mousemove", e => {
+        if (!dragging) return;
+
+        moleculeGroup.rotation.y += (e.clientX - prevX) * 0.01;
+        moleculeGroup.rotation.x += (e.clientY - prevY) * 0.01;
+
+        prevX = e.clientX;
+        prevY = e.clientY;
+    });
+
+    let lastDist = 0;
+
+    renderer.domElement.addEventListener("touchmove", e => {
+        if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+
+            const dist = Math.sqrt(dx*dx + dy*dy);
+
+            if (lastDist) {
+                const delta = dist - lastDist;
+                scaleFactor += delta * 0.005;
+                scaleFactor = Math.max(0.2, Math.min(3, scaleFactor));
+                moleculeGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+            }
+
+            lastDist = dist;
+        }
+    });
+
+    renderer.domElement.addEventListener("touchend", () => {
+        lastDist = 0;
+    });
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+
+window.onload = init;
+</script>
 
 </body>
 </html>
